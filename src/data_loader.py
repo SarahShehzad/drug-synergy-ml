@@ -78,6 +78,10 @@ def merge_metadata_and_responses(metadata: pd.DataFrame, responses: pd.DataFrame
     Row/Col concentration by indexing into the block's RowConcs/ColConcs
     dilution series (Row/Col are 1-indexed).
     """
+    metadata = metadata.copy()
+    responses = responses.copy()
+    metadata["BlockId"] = metadata["BlockId"].astype(str)
+    responses["BlockId"] = responses["BlockId"].astype(str)
     merged = responses.merge(metadata, on="BlockId", how="left", suffixes=("", "_meta"))
 
     def resolve_conc(row, col_name, idx_name):
