@@ -68,6 +68,9 @@ export SYNAPSE_AUTH_TOKEN=your_personal_access_token
       fine-tune on NF1 data
 - [ ] Stretch: graph neural network instead of fingerprints
 - [ ] Stretch: SHAP interpretability on feature importance
+- [ ] Stretch: compute Bliss on reference line too, use tumor−reference
+      Bliss delta as a selectivity-adjusted synergy score; likely
+      correlates more strongly with CMRS than raw tumor-only Bliss does
 
 ## Data sources
 
