@@ -18,6 +18,16 @@ import os
 import synapseclient
 import pandas as pd
 
+def resolve_drug_name(name, sid) -> str | None:
+    """
+    Some metadata rows are missing a human-readable drug name but have a
+    unique chemical ID (RowSid/ColSid, an NCGC compound ID). Fall back to
+    the ID rather than dropping real screening data.
+    """
+    if pd.isna(name) or str(name).strip() == "":
+        return sid if pd.notna(sid) else None
+    return name
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -31,23 +41,19 @@ CELL_LINE_FILES = {
     "ipNF05.5 (mixed clone)": {
         "metadata": "syn5613591",
         "responses": "syn5613592",
+        "is_tumor": True,
     },
     "ipNF95.6": {
         "metadata": "syn5613594",
         "responses": "syn5613595",
+        "is_tumor": True,
     },
     "ipnNF95.11c": {
         "metadata": "syn5613597",
         "responses": "syn5613598",
+        "is_tumor": False,
     },
 }
-
-# All three are NF1-/- tumor-derived Schwann cell lines used in the paper.
-# TODO: confirm whether the paper's CMRS calc needs a separate non-tumor
-# reference line (e.g. HFF or ipn02.3, both visible as sibling folders in
-# the same Synapse project) or derives "non-tumor" comparison some other
-# way. For now everything pulled here is marked is_tumor=True.
-IS_TUMOR = True
 
 
 def login() -> synapseclient.Synapse:
@@ -92,14 +98,22 @@ def load_cell_line(conn, syn: synapseclient.Synapse, cell_line_name: str, syn_id
     responses = fetch_csv(syn, syn_ids["responses"])
 
     merged = merge_metadata_and_responses(metadata, responses)
-    cell_line_id = get_or_create_cell_line(conn, cell_line_name, IS_TUMOR)
+    cell_line_id = get_or_create_cell_line(conn, cell_line_name, syn_ids["is_tumor"])
 
     n_loaded = 0
+    n_skipped = 0
     for row in merged.itertuples():
-        drug_a_id = get_or_create_drug(conn, row.RowName, moa=getattr(row, "RowTarget", None))
-        drug_b_id = get_or_create_drug(conn, row.ColName, moa=getattr(row, "ColTarget", None))
+        row_name = resolve_drug_name(row.RowName, getattr(row, "RowSid", None))
+        col_name = resolve_drug_name(row.ColName, getattr(row, "ColSid", None))
+        if row_name is None or col_name is None:
+            n_skipped += 1
+            continue
+
+        drug_a_id = get_or_create_drug(conn, row_name, moa=getattr(row, "RowTarget", None))
+        drug_b_id = get_or_create_drug(conn, col_name, moa=getattr(row, "ColTarget", None))
 
         if row.conc_a is None or row.conc_b is None:
+            n_skipped += 1
             continue  # couldn't resolve concentration index, skip
 
         conn.execute(
@@ -121,7 +135,7 @@ def load_cell_line(conn, syn: synapseclient.Synapse, cell_line_name: str, syn_id
         n_loaded += 1
 
     conn.commit()
-    print(f"  {cell_line_name}: loaded {n_loaded} wells")
+    print(f"  {cell_line_name}: loaded {n_loaded} wells" + (f", skipped {n_skipped}" if n_skipped else ""))
     return n_loaded
 
 
