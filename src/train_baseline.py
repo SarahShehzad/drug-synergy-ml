@@ -28,7 +28,7 @@ def load_training_data() -> pd.DataFrame:
     conn = get_connection()
     query = """
     SELECT
-        s.block_id,
+        sc.block_id,
         da.name AS drug_a_name, da.smiles AS smiles_a,
         db_.name AS drug_b_name, db_.smiles AS smiles_b,
         cl.is_tumor,

@@ -4,12 +4,15 @@ that a model can consume, and combines two drugs' fingerprints into a
 single pair-level feature vector.
 """
 
+import math
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
 
-def smiles_to_fingerprint(smiles: str, n_bits: int = 1024, radius: int = 2) -> np.ndarray:
+def smiles_to_fingerprint(smiles, n_bits: int = 1024, radius: int = 2) -> np.ndarray:
+    if smiles is None or (isinstance(smiles, float) and math.isnan(smiles)):
+        return np.zeros(n_bits, dtype=int)
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return np.zeros(n_bits, dtype=int)
