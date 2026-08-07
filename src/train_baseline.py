@@ -19,7 +19,7 @@ from sklearn.metrics import mean_absolute_error
 import xgboost as xgb
 
 from src.db import get_connection
-from src.features import pair_features
+from src.features import pair_features, get_moa_vocabulary
 
 MODEL_OUT = Path(__file__).resolve().parent.parent / "models" / "baseline_model.pkl"
 
@@ -29,8 +29,8 @@ def load_training_data() -> pd.DataFrame:
     query = """
     SELECT
         sc.block_id,
-        da.name AS drug_a_name, da.smiles AS smiles_a,
-        db_.name AS drug_b_name, db_.smiles AS smiles_b,
+        da.name AS drug_a_name, da.smiles AS smiles_a, da.moa AS moa_a,
+        db_.name AS drug_b_name, db_.smiles AS smiles_b, db_.moa AS moa_b,
         cl.is_tumor,
         sc.cmrs_score AS target
     FROM synergy_scores sc
@@ -50,8 +50,14 @@ def train():
         print("No training data found — run data_loader.py first and populate synergy_scores.")
         return
 
+    moa_vocab = get_moa_vocabulary(list(df["moa_a"]) + list(df["moa_b"]))
+    print(f"Found {len(moa_vocab)} distinct mechanisms of action")
+
     X = np.vstack([
-        pair_features(row.smiles_a, row.smiles_b, bool(row.is_tumor))
+        pair_features(
+            row.smiles_a, row.smiles_b, bool(row.is_tumor),
+            moa_a=row.moa_a, moa_b=row.moa_b, moa_vocab=moa_vocab,
+        )
         for row in df.itertuples()
     ])
     y = df["target"].values

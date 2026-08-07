@@ -72,6 +72,9 @@ export SYNAPSE_AUTH_TOKEN=your_personal_access_token
       Bliss delta as a selectivity-adjusted synergy score; likely
       correlates more strongly with CMRS than raw tumor-only Bliss does
 
+## Write up
+- Model shows real, moderate predictive signal on genuinely held-out drug pairs (Spearman p = 0.57), correctly recovering moderately ranked known combinations (Carfilzomib+Selumetinib: true rank 38, predicted rank 103) even without training on that specific pair. It struggles specifically with extreme statistical outliers. It would be the single highest-scoring pair in the entire dataset (18 points beyond the next-best) which was consistently mispredicted across every feature configuration tried, consistent with a known limitation of tree-based models: they can't extrapolate meaningfully beyond the range of values seen in similar training examples, especially with a dataset this size (39 usable drugs).
+
 ## Data sources
 
 - Primary: Ferrer, M. et al. (2018), Synapse `syn5611796`
