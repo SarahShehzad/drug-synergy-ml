@@ -1,0 +1,14 @@
+anchor,candidate,shared_moa,predicted_cmrs
+Carfilzomib,Marizomib,Proteasome inhibitor,89.2
+Carfilzomib,Ixazomib,Proteasome inhibitor,86.7
+Carfilzomib,Bortezomib,Proteasome inhibitor,84.0
+Panobinostat,Romidepsin,HDAC inhibitor,70.5
+Panobinostat,Vorinostat,HDAC inhibitor,67.5
+Panobinostat,Belinostat,HDAC inhibitor,63.7
+Ganetespib,Luminespib,HSP90 inhibitor,37.4
+Selumetinib,Trametinib,Mek1/2 inhibitor,35.0
+Ganetespib,Retaspimycin,HSP90 inhibitor,33.5
+Ganetespib,Tanespimycin,HSP90 inhibitor,33.4
+Selumetinib,Binimetinib,Mek1/2 inhibitor,27.1
+Selumetinib,Cobimetinib,Mek1/2 inhibitor,25.7
+Ganetespib,Onalespib,HSP90 inhibitor,25.0
