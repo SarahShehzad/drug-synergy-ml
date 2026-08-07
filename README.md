@@ -75,6 +75,23 @@ export SYNAPSE_AUTH_TOKEN=your_personal_access_token
 ## Write up
 - Model shows real, moderate predictive signal on genuinely held-out drug pairs (Spearman p = 0.57), correctly recovering moderately ranked known combinations (Carfilzomib+Selumetinib: true rank 38, predicted rank 103) even without training on that specific pair. It struggles specifically with extreme statistical outliers. It would be the single highest-scoring pair in the entire dataset (18 points beyond the next-best) which was consistently mispredicted across every feature configuration tried, consistent with a known limitation of tree-based models: they can't extrapolate meaningfully beyond the range of values seen in similar training examples, especially with a dataset this size (39 usable drugs).
 
+- **Exploratory predictions on genuinely novel compounds** (never screened
+in this dataset, paired against proven top performers by shared
+mechanism) ranked proteasome inhibitors (Carfilzomib + Marizomib/
+Ixazomib/Bortezomib) highest, entirely on structural/mechanism features, independently converging on the same drug class the paper's authors
+flagged as a notable recurring performer. Treated as lower-confidence
+extrapolation, not validated results.
+
+## Limitations
+- Predictions are only meaningful for drugs structurally/mechanistically
+  similar to the training panel. This is not a general-purpose synergy
+  predictor for arbitrary drug pairs.
+- Small dataset (39 usable drugs, ~740 usable pairs after excluding
+  missing-structure entries) limits how well any model can extrapolate.
+- The model reliably underperforms on extreme outliers (see Key Findings).
+- One drug (`NCGC00183656-04`) has no resolvable name or SMILES in the
+  source data and is excluded from feature-based analysis.
+
 ## Data sources
 
 - Primary: Ferrer, M. et al. (2018), Synapse `syn5611796`
