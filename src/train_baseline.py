@@ -31,7 +31,7 @@ def load_training_data() -> pd.DataFrame:
         sc.block_id,
         da.name AS drug_a_name, da.smiles AS smiles_a, da.moa AS moa_a,
         db_.name AS drug_b_name, db_.smiles AS smiles_b, db_.moa AS moa_b,
-        cl.is_tumor,
+        cl.is_tumor, cl.name AS cell_line_name,
         sc.cmrs_score AS target
     FROM synergy_scores sc
     JOIN drugs da ON sc.drug_a_id = da.drug_id

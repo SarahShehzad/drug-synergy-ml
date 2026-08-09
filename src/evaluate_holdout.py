@@ -25,11 +25,15 @@ def find_pair_row(df, name_a, name_b):
     return match.iloc[0] if not match.empty else None
 
 
-def main():
+def run_holdout_evaluation() -> dict:
+    """
+    Runs leave-pair-out cross-validation and returns the results as a
+    dict, so both the CLI script and the Streamlit dashboard can use the
+    same computation without duplicating logic.
+    """
     df = load_training_data()
     if df.empty:
-        print("No training data found.")
-        return
+        return {"error": "No training data found."}
 
     moa_vocab = get_moa_vocabulary(list(df["moa_a"]) + list(df["moa_b"]))
 
@@ -42,8 +46,6 @@ def main():
     ])
     y = df["target"].values
 
-    # Group by drug-PAIR identity (not block_id) -- the same pair never
-    # appears in both train and test, even if tested in two cell lines.
     pair_keys = [tuple(sorted((a, b))) for a, b in zip(df["drug_a_name"], df["drug_b_name"])]
     group_ids = pd.factorize(pd.Series(pair_keys))[0]
 
@@ -62,26 +64,61 @@ def main():
     results["actual_rank"] = results["actual_score"].rank(ascending=False)
 
     spearman = results["predicted_rank"].corr(results["actual_rank"], method="spearman")
-    print(f"Spearman correlation (held-out predicted vs actual rank): {spearman:.3f}\n")
 
-    true_top10 = set(results.nsmallest(10, "actual_rank").index)
-    pred_top10 = set(results.nsmallest(10, "predicted_rank").index)
-    overlap = len(true_top10 & pred_top10)
-    print(f"Top-10 precision: {overlap}/10 of the true top 10 also appear in the "
+    true_top10_idx = set(results.nsmallest(10, "actual_rank").index)
+    pred_top10_idx = set(results.nsmallest(10, "predicted_rank").index)
+    top10_precision = len(true_top10_idx & pred_top10_idx)
+
+    def top10_table(idx_set, sort_col):
+        subset = results.loc[list(idx_set)].sort_values(sort_col)
+        records = []
+        for _, row in subset.iterrows():
+            records.append({
+                "pair": f"{row['drug_a_name']} + {row['drug_b_name']}",
+                "cell_line": row["cell_line_name"],
+                "actual_rank": int(row["actual_rank"]),
+                "predicted_rank": int(row["predicted_rank"]),
+                "in_both": row.name in (true_top10_idx & pred_top10_idx),
+            })
+        return records
+
+    true_top10_list = top10_table(true_top10_idx, "actual_rank")
+    pred_top10_list = top10_table(pred_top10_idx, "predicted_rank")
+
+    known_combo_results = []
+    for name_a, name_b in KNOWN_TOP_COMBOS:
+        row = find_pair_row(results, name_a, name_b)
+        if row is not None:
+            known_combo_results.append({
+                "pair": f"{name_a} + {name_b}",
+                "actual_rank": int(row["actual_rank"]),
+                "predicted_rank": int(row["predicted_rank"]),
+            })
+
+    return {
+        "spearman": spearman,
+        "top10_precision": top10_precision,
+        "known_combos": known_combo_results,
+        "n_pairs": len(results),
+        "true_top10": true_top10_list,
+        "pred_top10": pred_top10_list,
+    }
+
+
+def main():
+    result = run_holdout_evaluation()
+    if "error" in result:
+        print(result["error"])
+        return
+
+    print(f"Spearman correlation (held-out predicted vs actual rank): {result['spearman']:.3f}\n")
+    print(f"Top-10 precision: {result['top10_precision']}/10 of the true top 10 also appear in the "
           f"model's held-out predicted top 10\n")
 
     print("Known top combos -- held-out prediction check:")
-    for name_a, name_b in KNOWN_TOP_COMBOS:
-        row = find_pair_row(results, name_a, name_b)
-        if row is None:
-            print(f"  {name_a} + {name_b}: not found")
-            continue
+    for combo in result["known_combos"]:
         print(
-            f"  {name_a} + {name_b}: actual rank {int(row['actual_rank'])}, "
-            f"held-out PREDICTED rank {int(row['predicted_rank'])} "
+            f"  {combo['pair']}: actual rank {combo['actual_rank']}, "
+            f"held-out PREDICTED rank {combo['predicted_rank']} "
             f"(model never trained on this specific pair)"
         )
-
-
-if __name__ == "__main__":
-    main()
