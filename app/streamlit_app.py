@@ -8,6 +8,7 @@ Run this dashboard with:
     streamlit run app/streamlit_app.py
 """
 
+#Imports
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -25,19 +26,20 @@ import streamlit as st
 
 from src.db import get_connection
 
+
 API_URL = "http://127.0.0.1:8000"
 SORT_COLUMNS = {"CMRS score": "cmrs_score", "Bliss score": "bliss_score"}
 
-st.set_page_config(page_title="NF1 Drug Synergy Dashboard", page_icon="🧬", layout="wide")
+st.set_page_config(page_title="NF1 Drug Synergy Dashboard", page_icon="assets/NF1dashboardIcon.png", layout="wide")
 st.title("Neurofibromatosis Type 1 Drug Synergy Analyst Dashboard")
 st.caption(
-    "Own ETL | CMRS & Bliss reproduction | trained model, extending "
+    "Own ETL | CMRS & Bliss reproduction | Trained model, extending "
     "Zhou, Shehzad, Ahmed et al. (2025), bioRxiv 2025.08.02.667047"
 )
 
 conn = get_connection()
 
-# Metric cards 
+# Basic info 
 total_pairs = conn.execute(
     "SELECT COUNT(*) FROM synergy_scores WHERE cmrs_score IS NOT NULL"
 ).fetchone()[0]
@@ -100,7 +102,7 @@ st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 st.divider()
 
-# CMRS vs Bliss comparison
+# CMRS vs Bliss comparison (scatter plot)
 st.subheader("CMRS vs Bliss: do they agree?")
 st.caption(
     "They anti-correlate. CMRS measures tumor-selectivity, Bliss measures "
@@ -118,8 +120,8 @@ st.divider()
 st.subheader("Model performance: genuinely held-out pairs")
 st.caption(
     "Leave-pair-out cross-validation. The model never trained on the "
-    "specific pair it's predicting here. This is the real evidence the "
-    "approach generalizes, not just fits known data. The numbers here pool both"
+    "specific pair it's predicting here. This approach "
+    "generalizes. The numbers here pool both"
     "tumor cell lines together (1560 pairs)."
 )
 
@@ -169,8 +171,8 @@ st.subheader("Exploratory: predictions on novel compounds")
 st.caption(
     "These drugs were never screened in this dataset at all. They were paired "
     "against proven top performers by shared mechanism of action, using "
-    "structures pulled live from PubChem. This is genuine extrapolation, "
-    "not interpolation like everything else on this page: **treat these "
+    "structures pulled live from PubChem. "
+    "**Treat these "
     "as lower-confidence, exploratory signal, not validated results.**"
 )
 
@@ -188,7 +190,7 @@ if candidates_path.exists():
         "Notably, the top three predictions were all proteasome inhibitors "
         "paired with Carfilzomib, a mechanism the original paper's authors "
         "independently flagged as a recurring strong performer, arrived at "
-        "here purely from structural/mechanism features, not from being told."
+        "here from structural/mechanism features."
     )
 else:
     st.info("Run `python -m src.explore_new_compounds` to generate this data.")
@@ -221,6 +223,50 @@ if st.button("Predict"):
                     "One or both drugs are missing a real molecular structure. "
                     "Prediction may be unreliable."
                 )
+            st.write("**Analysis:**")
+            analysis_conn = get_connection()
+
+            actual_rows = analysis_conn.execute(
+                """
+                SELECT sc.cmrs_score, sc.bliss_score, cl.name
+                FROM synergy_scores sc
+                JOIN drugs da ON sc.drug_a_id = da.drug_id
+                JOIN drugs db_ ON sc.drug_b_id = db_.drug_id
+                JOIN cell_lines cl ON sc.cell_line_id = cl.cell_line_id
+                WHERE cl.is_tumor = 1
+                  AND ((da.name = ? AND db_.name = ?) OR (da.name = ? AND db_.name = ?))
+                """,
+                (drug_a_input, drug_b_input, drug_b_input, drug_a_input),
+            ).fetchall()
+
+            if actual_rows:
+                for actual_cmrs, actual_bliss, cell_line_name in actual_rows:
+                    diff = result["predicted_cmrs"] - actual_cmrs
+                    bliss_note = f" Real Bliss score: {actual_bliss:.2f}." if actual_bliss is not None else ""
+                    st.write(
+                        f"- In **{cell_line_name}**, this pair was already screened: "
+                        f"real CMRS score **{actual_cmrs:.0f}**, model predicted "
+                        f"**{result['predicted_cmrs']:.1f}** "
+                        f"({'+' if diff >= 0 else ''}{diff:.1f} off).{bliss_note}"
+                    )
+                st.caption(
+                    "This panel was tested exhaustively, so most pairs picked here were "
+                    "already screened. This is the model recalling a known result, not "
+                    "a genuine new prediction. See the exploratory section below for "
+                    "predictions on compounds never screened at all."
+                )
+            else:
+                st.info("This exact pair wasn't found in the screened dataset for either tumor cell line.")
+
+            all_scores = pd.read_sql_query(
+                "SELECT cmrs_score FROM synergy_scores WHERE cmrs_score IS NOT NULL", analysis_conn
+            )["cmrs_score"]
+            percentile = (all_scores < result["predicted_cmrs"]).mean() * 100
+            st.write(
+                f"- A score of **{result['predicted_cmrs']:.1f}** falls in the "
+                f"**{percentile:.0f}th percentile** of all {len(all_scores)} historically scored pairs."
+            )
+            analysis_conn.close()
         else:
             st.error(f"API error: {resp.json().get('detail', resp.text)}")
     except requests.exceptions.ConnectionError:
