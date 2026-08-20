@@ -27,7 +27,8 @@ import streamlit as st
 from src.db import get_connection
 
 
-API_URL = "http://127.0.0.1:8000"
+import os
+API_URL = os.environ.get("API_URL", "http://127.0.0.1:8000")
 SORT_COLUMNS = {"CMRS score": "cmrs_score", "Bliss score": "bliss_score"}
 
 st.set_page_config(page_title="NF1 Drug Synergy Dashboard", page_icon="assets/NF1dashboardIcon.png", layout="wide")
