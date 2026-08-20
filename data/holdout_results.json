@@ -1,0 +1,166 @@
+{
+  "spearman": 0.5695355069917909,
+  "top10_precision": 2,
+  "known_combos": [
+    {
+      "pair": "Alvespimycin + Topotecan",
+      "actual_rank": 1,
+      "predicted_rank": 945
+    },
+    {
+      "pair": "Panobinostat + Ganetespib",
+      "actual_rank": 4,
+      "predicted_rank": 169
+    },
+    {
+      "pair": "Carfilzomib + Selumetinib",
+      "actual_rank": 38,
+      "predicted_rank": 103
+    }
+  ],
+  "n_pairs": 1560,
+  "true_top10": [
+    {
+      "pair": "Topotecan (Hydrochloride) + Alvespimycin hydrochloride",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 1,
+      "predicted_rank": 945,
+      "in_both": false
+    },
+    {
+      "pair": "CHS-828 + Carfilzomib",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 2,
+      "predicted_rank": 1,
+      "in_both": true
+    },
+    {
+      "pair": "NCGC00183656-04 + CHS-828",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 3,
+      "predicted_rank": 115,
+      "in_both": false
+    },
+    {
+      "pair": "Ganetespib + Panobinostat",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 4,
+      "predicted_rank": 169,
+      "in_both": false
+    },
+    {
+      "pair": "CHS-828 + ABT-263 (Navitoclax)",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 4,
+      "predicted_rank": 205,
+      "in_both": false
+    },
+    {
+      "pair": "Panobinostat + Alvespimycin hydrochloride",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 6,
+      "predicted_rank": 73,
+      "in_both": false
+    },
+    {
+      "pair": "Alvespimycin hydrochloride + 2-Fluoroadenosine",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 6,
+      "predicted_rank": 31,
+      "in_both": false
+    },
+    {
+      "pair": "CHS-828 + IC-87114",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 8,
+      "predicted_rank": 609,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + Panobinostat",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 8,
+      "predicted_rank": 9,
+      "in_both": true
+    },
+    {
+      "pair": "Carfilzomib + Bardoxolone methyl",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 10,
+      "predicted_rank": 19,
+      "in_both": false
+    }
+  ],
+  "pred_top10": [
+    {
+      "pair": "CHS-828 + Carfilzomib",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 2,
+      "predicted_rank": 1,
+      "in_both": true
+    },
+    {
+      "pair": "CHS-828 + Carfilzomib",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 97,
+      "predicted_rank": 1,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + Volasertib",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 312,
+      "predicted_rank": 3,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + Volasertib",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 255,
+      "predicted_rank": 3,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + Alvespimycin hydrochloride",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 47,
+      "predicted_rank": 5,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + Alvespimycin hydrochloride",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 268,
+      "predicted_rank": 5,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + 2-Fluoroadenosine",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 255,
+      "predicted_rank": 7,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + 2-Fluoroadenosine",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 16,
+      "predicted_rank": 7,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + Panobinostat",
+      "cell_line": "ipNF05.5 (mixed clone)",
+      "actual_rank": 255,
+      "predicted_rank": 9,
+      "in_both": false
+    },
+    {
+      "pair": "Carfilzomib + Panobinostat",
+      "cell_line": "ipNF95.6",
+      "actual_rank": 8,
+      "predicted_rank": 9,
+      "in_both": true
+    }
+  ]
+}

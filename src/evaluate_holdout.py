@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import GroupKFold, cross_val_predict
 import xgboost as xgb
+from pathlib import Path
 
 from src.train_baseline import load_training_data
 from src.features import pair_features, get_moa_vocabulary
@@ -122,3 +123,16 @@ def main():
             f"held-out PREDICTED rank {combo['predicted_rank']} "
             f"(model never trained on this specific pair)"
         )
+
+def save_results_to_file():
+    import json
+    result = run_holdout_evaluation()
+    out_path = Path(__file__).resolve().parent.parent / "data" / "holdout_results.json"
+    with open(out_path, "w") as f:
+        json.dump(result, f, indent=2)
+    print(f"Saved to {out_path}")
+
+
+if __name__ == "__main__":
+    main()
+    save_results_to_file()

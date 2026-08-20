@@ -126,12 +126,17 @@ st.caption(
     "tumor cell lines together (1560 pairs)."
 )
 
-@st.cache_resource
-def get_holdout_results():
-    return run_holdout_evaluation()
+import json
 
-with st.spinner("Running held-out evaluation (cached after first load)..."):
-    holdout = get_holdout_results()
+@st.cache_data
+def get_holdout_results():
+    results_path = Path(__file__).resolve().parent.parent / "data" / "holdout_results.json"
+    if not results_path.exists():
+        return {"error": "Run `python -m src.evaluate_holdout` locally first to generate this."}
+    with open(results_path) as f:
+        return json.load(f)
+
+holdout = get_holdout_results()
 
 if "error" in holdout:
     st.warning(holdout["error"])
@@ -211,11 +216,12 @@ drug_b_input = pcol2.selectbox(
 
 if st.button("Predict"):
     try:
-        resp = requests.post(
-            f"{API_URL}/predict",
-            json={"drug_a": drug_a_input, "drug_b": drug_b_input, "is_tumor": True},
-            timeout=5,
-        )
+        with st.spinner("Contacting the prediction API (may take up to a minute if it's waking up from sleep)..."):
+            resp = requests.post(
+                f"{API_URL}/predict",
+                json={"drug_a": drug_a_input, "drug_b": drug_b_input, "is_tumor": True},
+                timeout=60,
+            )
         if resp.status_code == 200:
             result = resp.json()
             st.metric("Predicted CMRS score", result["predicted_cmrs"])
@@ -270,5 +276,11 @@ if st.button("Predict"):
             analysis_conn.close()
         else:
             st.error(f"API error: {resp.json().get('detail', resp.text)}")
+    except requests.exceptions.Timeout:
+        st.error(
+            "The API took too long to respond -- it may still be waking up from sleep "
+            "(free-tier hosting spins down after inactivity). Try clicking Predict again "
+            "in about a minute."
+        )
     except requests.exceptions.ConnectionError:
         st.error("Couldn't reach the API. Is `uvicorn src.api:app --reload` running in another terminal?")
